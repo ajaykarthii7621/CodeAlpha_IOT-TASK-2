@@ -1,52 +1,97 @@
 """
-AIoT Demo: Edge and Cloud Simulation
+AIoT Demo: Scenario-Based Edge and Cloud Simulation
 
-This demo simulates a simple Artificial Intelligence of Things (AIoT) pipeline.
-It generates synthetic sensor data, processes it at the edge, detect anomalies
-locally, and simulates a cloud-based model update.
-
-Key concepts in this repository:
-- Device Layer: sensor generation and raw signal capture
-- Edge Layer: preprocessing, noise filtering, local inference
-- Cloud Layer: model training, global intelligence, OTA updates
+This script demonstrates multiple AIoT scenarios with modular device profiles,
+edge inference, and cloud-style baseline learning. It is intentionally designed
+for clarity, storytelling, and future extension.
 """
 
+from dataclasses import dataclass, field
+import argparse
+import json
 import random
 import statistics
 import time
+from typing import Any, Dict, List
 
 
-def simulate_sensor_data(sample_count=30):
-    """Generate synthetic multisensor readings."""
-    for _ in range(sample_count):
-        data = {
-            'temperature_c': round(random.uniform(20.0, 30.0), 2),
-            'heart_rate_bpm': round(random.uniform(55.0, 95.0), 1),
-            'motion_index': round(random.uniform(0.0, 1.0), 3),
-        }
-        if random.random() < 0.08:
-            data['temperature_c'] += random.uniform(5.0, 10.0)
-        if random.random() < 0.06:
-            data['heart_rate_bpm'] += random.uniform(25.0, 45.0)
-        if random.random() < 0.05:
-            data['motion_index'] += random.uniform(1.0, 2.0)
-        yield data
+@dataclass
+class DeviceScenario:
+    name: str
+    sensors: List[str]
+    safe_ranges: Dict[str, tuple]
+    anomaly_models: Dict[str, Dict[str, Any]]
+    history: List[Dict[str, float]] = field(default_factory=list)
+
+    def generate_reading(self) -> Dict[str, float]:
+        reading = {}
+        for sensor in self.sensors:
+            minimum, maximum = self.safe_ranges[sensor]
+            value = random.uniform(minimum, maximum)
+            if random.random() < self.anomaly_models[sensor]['chance']:
+                offset = random.uniform(*self.anomaly_models[sensor]['spike'])
+                value += offset
+            reading[sensor] = round(value, 3)
+        return reading
 
 
-def edge_preprocess(sample):
-    """Simulate edge preprocessing and noise reduction."""
-    result = sample.copy()
-    result['temperature_c'] = round(result['temperature_c'], 2)
-    result['heart_rate_bpm'] = round(result['heart_rate_bpm'], 1)
-    result['motion_index'] = round(min(result['motion_index'], 3.0), 3)
-    return result
+SCENARIOS = {
+    'smart_mattress': DeviceScenario(
+        name='Smart Mattress',
+        sensors=['temperature_c', 'heart_rate_bpm', 'motion_index'],
+        safe_ranges={
+            'temperature_c': (22.0, 26.0),
+            'heart_rate_bpm': (55.0, 75.0),
+            'motion_index': (0.0, 0.4),
+        },
+        anomaly_models={
+            'temperature_c': {'chance': 0.08, 'spike': (4.0, 9.0)},
+            'heart_rate_bpm': {'chance': 0.06, 'spike': (20.0, 40.0)},
+            'motion_index': {'chance': 0.05, 'spike': (0.8, 1.5)},
+        },
+    ),
+    'autonomous_drone': DeviceScenario(
+        name='Autonomous Drone',
+        sensors=['battery_pct', 'obstacle_distance_m', 'gps_accuracy_m'],
+        safe_ranges={
+            'battery_pct': (60.0, 100.0),
+            'obstacle_distance_m': (5.0, 20.0),
+            'gps_accuracy_m': (0.5, 2.0),
+        },
+        anomaly_models={
+            'battery_pct': {'chance': 0.05, 'spike': (-40.0, -25.0)},
+            'obstacle_distance_m': {'chance': 0.06, 'spike': (-4.0, -2.0)},
+            'gps_accuracy_m': {'chance': 0.04, 'spike': (3.0, 7.0)},
+        },
+    ),
+    'security_gateway': DeviceScenario(
+        name='Security Gateway',
+        sensors=['auth_score', 'audio_energy', 'stability_index'],
+        safe_ranges={
+            'auth_score': (0.7, 1.0),
+            'audio_energy': (20.0, 40.0),
+            'stability_index': (0.8, 1.0),
+        },
+        anomaly_models={
+            'auth_score': {'chance': 0.07, 'spike': (-0.6, -0.4)},
+            'audio_energy': {'chance': 0.05, 'spike': (15.0, 30.0)},
+            'stability_index': {'chance': 0.04, 'spike': (-0.5, -0.3)},
+        },
+    ),
+}
 
 
-def cloud_train_baseline(history):
-    """Simulate cloud training using aggregated edge data."""
+def preprocess(reading: Dict[str, float]) -> Dict[str, float]:
+    cleaned = {key: round(value, 3) for key, value in reading.items()}
+    return cleaned
+
+
+def train_cloud_baseline(history: List[Dict[str, float]]) -> Dict[str, Dict[str, float]]:
     baseline = {}
+    if not history:
+        return baseline
     for key in history[0].keys():
-        values = [sample[key] for sample in history]
+        values = [entry[key] for entry in history]
         baseline[key] = {
             'mean': statistics.mean(values),
             'stdev': statistics.stdev(values) if len(values) > 1 else 0.1,
@@ -54,54 +99,78 @@ def cloud_train_baseline(history):
     return baseline
 
 
-def edge_inference(sample, baseline, z_threshold=2.0):
-    """Run a simple edge anomaly detector using baseline z-scores."""
+def infer_edge(reading: Dict[str, float], baseline: Dict[str, Dict[str, float]]) -> List[str]:
     anomalies = []
     for key, stats in baseline.items():
         if stats['stdev'] <= 0:
             continue
-        z_score = abs((sample[key] - stats['mean']) / stats['stdev'])
-        if z_score > z_threshold:
-            anomalies.append((key, sample[key], round(z_score, 2)))
+        z_score = abs((reading[key] - stats['mean']) / stats['stdev'])
+        if z_score > 2.2:
+            anomalies.append(f'{key} ({reading[key]} | z={z_score:.2f})')
     return anomalies
 
 
-def publish_telemetry(sample, anomalies):
-    """Simulate telemetry publishing from the edge to the cloud."""
-    status = 'ALERT' if anomalies else 'OK'
+def format_telemetry(scenario: DeviceScenario, reading: Dict[str, float], anomalies: List[str]) -> Dict[str, Any]:
     payload = {
-        'sensor_data': sample,
-        'status': status,
+        'scenario': scenario.name,
+        'timestamp': time.time(),
+        'sensor_data': reading,
+        'status': 'ALERT' if anomalies else 'STABLE',
         'anomaly_count': len(anomalies),
+        'anomaly_details': anomalies,
     }
     return payload
 
 
-def main():
-    print('AIoT Demo: Simulated device -> edge -> cloud pipeline')
-    history = []
+def run_simulation(scenario_key: str, steps: int = 24, warmup: int = 6):
+    scenario = SCENARIOS[scenario_key]
+    print(f'AIoT Scenario: {scenario.name}\n')
+    print('Initializing device profile...')
+    print(f'- Sensors: {scenario.sensors}')
+    print(f'- Warmup phase: {warmup} steps to build baseline\n')
 
-    for step, raw_sample in enumerate(simulate_sensor_data(), 1):
-        edge_sample = edge_preprocess(raw_sample)
-        history.append(edge_sample)
+    for step in range(1, steps + 1):
+        raw_reading = scenario.generate_reading()
+        local_reading = preprocess(raw_reading)
 
-        if step < 5:
-            print(f'[STEP {step}] Collecting baseline data: {edge_sample}')
+        scenario.history.append(local_reading)
+        if len(scenario.history) < warmup:
+            print(f'[STEP {step}] Baseline warmup: {local_reading}')
+            continue
+
+        baseline = train_cloud_baseline(scenario.history[-warmup:])
+        anomalies = infer_edge(local_reading, baseline)
+        telemetry = format_telemetry(scenario, local_reading, anomalies)
+
+        print(f'[STEP {step}] Edge inference => {telemetry["status"]}')
+        print(f'           Sensor data: {local_reading}')
+        if anomalies:
+            print(f'           Detected: {anomalies}\n')
         else:
-            baseline = cloud_train_baseline(history[-10:])
-            anomalies = edge_inference(edge_sample, baseline)
-            message = publish_telemetry(edge_sample, anomalies)
-            print(f'[STEP {step}] Edge inference: {edge_sample}')
-            print(f'           Telemetry: {message}')
-            if anomalies:
-                print(f'           Detected anomalies: {anomalies}')
+            print('           No anomalies detected.\n')
 
-        time.sleep(0.1)
+    summary = {
+        'scenario': scenario.name,
+        'total_steps': steps,
+        'alerts': sum(1 for i in range(warmup, steps) if infer_edge(scenario.history[i], train_cloud_baseline(scenario.history[max(0, i - warmup + 1):i + 1]))),
+        'final_baseline': train_cloud_baseline(scenario.history[-warmup:]),
+    }
+    print('Simulation complete. Summary:')
+    print(json.dumps(summary, indent=2))
+    return summary
 
-    print('\nDemo complete. This example mirrors the AIoT report architecture:')
-    print('- Device Layer: synthetic sensors')
-    print('- Edge Layer: preprocessing + inference')
-    print('- Cloud Layer: baseline training and intelligence')
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='AIoT scenario simulation.')
+    parser.add_argument('--scenario', choices=SCENARIOS.keys(), default='smart_mattress')
+    parser.add_argument('--steps', type=int, default=24)
+    parser.add_argument('--warmup', type=int, default=6)
+    return parser.parse_args()
+
+
+def main():
+    args = parse_arguments()
+    run_simulation(args.scenario, steps=args.steps, warmup=args.warmup)
 
 
 if __name__ == '__main__':
