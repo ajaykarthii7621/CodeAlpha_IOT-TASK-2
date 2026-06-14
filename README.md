@@ -13,6 +13,7 @@ and scalable implementation.
 - `docs/AIoT_Innovation_Storyboard.md`: future-ready scenario storyboard and innovation prompts.
 - `docs/AIoT_Dashboard_Concept.md`: visual dashboard concept and mission control design.
 - `docs/AIoT_Additional_Case_Studies.md`: extra AIoT case studies and examples.
+- `docs/AIoT_Innovation_Lab.md`: structured innovation lab for experiments and workflows.
 - `code/aiot_demo.py`: scenario-driven AIoT simulation prototype.
 - `code/README.md`: demo usage, scenario examples, and extension ideas.
 - `deploy/`: Docker and Kubernetes deployment configs.
@@ -102,7 +103,8 @@ kubectl apply -f deploy/k8s-service.yaml
 
 ## Repository Structure
 - `code/`: scenario-driven prototype and demo documentation.
-- `docs/`: structured report summary, innovation playbook, storyboard, and dashboard concept.
+- `docs/`: structured report summary, innovation playbook, storyboard, dashboard concept, and lab experiments.
+- `deploy/`: Docker and Kubernetes deployment artifacts.
 - `AIoT_Case_Study_Report.pdf`: original case study report.
 - `.gitignore`: workspace and Python cleanup rules.
 
