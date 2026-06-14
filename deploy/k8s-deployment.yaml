@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aiot-demo-deployment
+  labels:
+    app: aiot-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aiot-demo
+  template:
+    metadata:
+      labels:
+        app: aiot-demo
+    spec:
+      containers:
+        - name: aiot-demo
+          image: ajaykarthii7621/CodeAlpha_IOT-TASK-2:latest
+          command: ["python3", "code/aiot_demo.py", "--scenario", "smart_mattress", "--steps", "24", "--warmup", "6"]
+          ports:
+            - containerPort: 8080

@@ -23,11 +23,19 @@ python3 aiot_demo.py
 |---|---|
 | `smart_mattress` | Simulates sleep monitoring and physiological alerts |
 | `autonomous_drone` | Simulates drone health and obstacle-risk signals |
-| `security_gateway` | Simulates trust scoring and threat detection|
+| `security_gateway` | Simulates trust scoring and threat detection |
+| `smart_grid` | Simulates grid power stability and line anomaly detection |
+| `air_quality_guardian` | Simulates air quality monitoring and risk alerts |
 
 ### Run a scenario
 ```bash
 python3 aiot_demo.py --scenario autonomous_drone
+```
+
+### Run an extended scenario
+```bash
+python3 aiot_demo.py --scenario smart_grid
+python3 aiot_demo.py --scenario air_quality_guardian
 ```
 
 ### Customize your simulation

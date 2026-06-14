@@ -12,8 +12,10 @@ and scalable implementation.
 - `docs/AIoT_Innovation_Playbook.md`: creative design playbook and solution canvas.
 - `docs/AIoT_Innovation_Storyboard.md`: future-ready scenario storyboard and innovation prompts.
 - `docs/AIoT_Dashboard_Concept.md`: visual dashboard concept and mission control design.
+- `docs/AIoT_Additional_Case_Studies.md`: extra AIoT case studies and examples.
 - `code/aiot_demo.py`: scenario-driven AIoT simulation prototype.
 - `code/README.md`: demo usage, scenario examples, and extension ideas.
+- `deploy/`: Docker and Kubernetes deployment configs.
 
 ## Studio Structure
 ### 1. Vision & Insights
@@ -47,6 +49,8 @@ for privacy, reliability, and user-centered AIoT.
 | Smart mattress | silent health monitoring | non-intrusive sensing + adaptive comfort | physiological sensor simulation |
 | Autonomous drone | safe route planning | real-time perception + fleet coordination | sensor anomaly detection |
 | Security gateway | threat detection | multi-modal trust verification | behavior and stability scoring |
+| Smart grid | energy stability | edge-aware power monitoring | grid anomaly detection |
+| Air quality guardian | public health alerting | predictive air risk monitoring | pollutant and CO2 scoring |
 
 ## Quick Start
 ```bash
@@ -59,6 +63,35 @@ python3 aiot_demo.py
 python3 aiot_demo.py --scenario smart_mattress
 python3 aiot_demo.py --scenario autonomous_drone
 python3 aiot_demo.py --scenario security_gateway
+python3 aiot_demo.py --scenario smart_grid
+python3 aiot_demo.py --scenario air_quality_guardian
+```
+
+## Deployment
+This repository includes Docker and Kubernetes configuration files in `deploy/`.
+
+- `deploy/Dockerfile`: container image for the AIoT demo.
+- `deploy/docker-compose.yml`: local compose setup.
+- `deploy/k8s-deployment.yaml`: example Kubernetes deployment.
+- `deploy/k8s-service.yaml`: example Kubernetes service.
+
+To run locally with Docker:
+```bash
+cd deploy
+docker build -t aiot-demo .
+docker run --rm aiot-demo
+```
+
+To run with Docker Compose:
+```bash
+cd deploy
+docker compose up --build
+```
+
+To deploy on Kubernetes, apply the YAML files:
+```bash
+kubectl apply -f deploy/k8s-deployment.yaml
+kubectl apply -f deploy/k8s-service.yaml
 ```
 
 ## Organizing principles

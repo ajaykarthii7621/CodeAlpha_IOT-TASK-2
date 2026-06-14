@@ -78,6 +78,34 @@ SCENARIOS = {
             'stability_index': {'chance': 0.04, 'spike': (-0.5, -0.3)},
         },
     ),
+    'smart_grid': DeviceScenario(
+        name='Smart Grid Node',
+        sensors=['line_voltage_v', 'load_current_a', 'frequency_hz'],
+        safe_ranges={
+            'line_voltage_v': (216.0, 241.0),
+            'load_current_a': (5.0, 12.0),
+            'frequency_hz': (49.6, 50.2),
+        },
+        anomaly_models={
+            'line_voltage_v': {'chance': 0.05, 'spike': (30.0, 45.0)},
+            'load_current_a': {'chance': 0.05, 'spike': (10.0, 20.0)},
+            'frequency_hz': {'chance': 0.04, 'spike': (0.8, 1.4)},
+        },
+    ),
+    'air_quality_guardian': DeviceScenario(
+        name='Air Quality Guardian',
+        sensors=['pm25_ug_m3', 'co2_ppm', 'humidity_pct'],
+        safe_ranges={
+            'pm25_ug_m3': (5.0, 35.0),
+            'co2_ppm': (400.0, 600.0),
+            'humidity_pct': (30.0, 50.0),
+        },
+        anomaly_models={
+            'pm25_ug_m3': {'chance': 0.06, 'spike': (40.0, 70.0)},
+            'co2_ppm': {'chance': 0.05, 'spike': (180.0, 320.0)},
+            'humidity_pct': {'chance': 0.04, 'spike': (-18.0, 20.0)},
+        },
+    ),
 }
 
 

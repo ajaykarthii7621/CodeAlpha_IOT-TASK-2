@@ -1,0 +1,10 @@
+version: '3.9'
+
+services:
+  aiot-demo:
+    build: .
+    container_name: aiot-demo
+    command: python3 code/aiot_demo.py --scenario smart_mattress --steps 24 --warmup 6
+    volumes:
+      - ../code:/app/code:ro
+    restart: unless-stopped
